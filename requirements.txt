@@ -1,0 +1,11 @@
+inference==0.9.17
+ipywidgets==8.1.2
+matplotlib==3.8.3
+mediapipe==0.10.11
+numpy==1.23.5
+openvino==2024.0.0
+PyQt6==6.6.1
+supervision==0.19.0
+torch==2.2.1
+opencv-python==4.8.0.76
+tensorflow==2.15.0

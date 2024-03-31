@@ -1,0 +1,9 @@
+{
+    "Face Detection": "https://www.gstatic.com/alkali/261f067d178d3bc27e6bb65b9e61aa3e1288df1e.png",
+    "Image Classification": "https://www.gstatic.com/alkali/5e3f294960d83e33380962220e45015ade81f673.png",
+    "Object Detection": "https://www.gstatic.com/alkali/4d8e451f16ebe5e57aa8d23e8474a757c5793e8f.png",
+    "Image Segmentation": "https://www.gstatic.com/alkali/b6bebe569c4a75fe864d04657fddc6fbd8657578.png",
+    "Gesture Recognition": "https://www.gstatic.com/alkali/ddc10b3ff2318f233f34585084625b0c2b3b495e.png",
+    "Hand Landmarker": "https://www.gstatic.com/alkali/09930285836a2b9a743f45da5d8e217fd4ead17e.png",
+    "Pose Estimation": "https://www.gstatic.com/alkali/ac43bed27c8ef9c4ce0e7a23838fa0b8c60fe2d8.png"
+}
