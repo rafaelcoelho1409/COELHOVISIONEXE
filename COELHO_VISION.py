@@ -11,7 +11,8 @@ from PyQt6.QtWidgets import (
     QSpacerItem,
     QSizePolicy,
     QFrame,
-    QFileDialog
+    QFileDialog,
+    QMessageBox
 )
 from PyQt6.QtGui import (
     QFont, 
@@ -22,8 +23,10 @@ from PyQt6.QtGui import (
 from PyQt6.QtCore import (
     Qt, 
     QTimer,
-    QUrl)
+    QUrl,
+    QSize)
 import cv2
+import pyautogui
 import logging
 import os
 import datetime as dt
@@ -59,10 +62,21 @@ def map_all_cameras():
             continue
     return available_cameras
 
+app = QApplication([])
+app.setStyle("fusion")
+
 FULL_SCREEN_MODE = False
 RES_WIDTH, RES_HEIGHT = 640, 480
 MAP_ALL_CAMERAS = map_all_cameras()
-AVAILABLE_CAMERA = MAP_ALL_CAMERAS[0]
+try:
+    AVAILABLE_CAMERA = MAP_ALL_CAMERAS[0]
+except Exception as e:
+    # If an exception occurs, show a critical QMessageBox
+    msg = QMessageBox()
+    msg.setIcon(QMessageBox.Icon.Critical)
+    msg.setText("There are no available cameras. Make sure you have at least one camera connected to your device.")
+    msg.setWindowTitle("Available camera error")
+    msg.exec()
 CURRENT_RESOLUTION = "640 x 480"
 SAVE_COUNT = 1
 CAP = cv2.VideoCapture(int(AVAILABLE_CAMERA))
@@ -71,8 +85,12 @@ class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.model = NoModel()
+        self.font_scale = min(
+            int((pyautogui.size()[0] * 20) / 1920),
+            int((pyautogui.size()[1] * 20) / 1080),
+        )
         #self.showFullScreen()
-        #self.showMaximized()
+        self.showMaximized()
         self.setWindowIcon(QIcon(resource_path(os.path.join('assets', 'coelho_vision_icon.png'))))
         self.initUI()
         self.mainLayout()
@@ -89,7 +107,7 @@ class MainApp(QMainWindow):
         # Title label
         title = QLabel("COELHO VISION")
         title.setFont(
-            QFont("Times New Roman", 40, QFont.Weight.Bold))
+            QFont("Times New Roman", 35, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignCenter)
         # Logo label
         logo = QLabel()
@@ -167,11 +185,11 @@ class MainApp(QMainWindow):
         self.resolution_box.currentTextChanged.connect(self._set_resolution)
         self.resolution_box.setCurrentIndex(self.resolution_box.findText(CURRENT_RESOLUTION))
         self.full_screen_btn = QPushButton("Full Screen")
-        self.full_screen_btn.setFixedHeight(int(50))
+        #self.full_screen_btn.setFixedHeight(int(50))
         #self.full_screen_btn.setCheckable(True)
         self.full_screen_btn.clicked.connect(self._open_full_screen)
         self.save_image_btn = QPushButton("Save Image")
-        self.save_image_btn.setFixedHeight(int(50))
+        #self.save_image_btn.setFixedHeight(int(50))
         self.save_image_btn.clicked.connect(self._save_image)
         for x in [
             self.available_cameras_legend, 
@@ -190,6 +208,10 @@ class MainApp(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def HomeTab(self):
+        image_scale = min(
+            (pyautogui.size()[0] * 0.5) / 1920,
+            (pyautogui.size()[1] * 0.5) / 1080,
+        )
         content = QWidget()
         layout = QVBoxLayout()
         font_italic = QFont("Sans Serif", 20)
@@ -203,32 +225,32 @@ class MainApp(QMainWindow):
         img_fullfacedection = QLabel()
         img_fullfacedection_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_fullfacedetector.png')))
         img_fullfacedection.setPixmap(img_fullfacedection_pixmap.scaled(
-                int(img_fullfacedection_pixmap.width() * 0.75), 
-                int(img_fullfacedection_pixmap.height() * 0.75), 
+                int(img_fullfacedection_pixmap.width() * image_scale), 
+                int(img_fullfacedection_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_facedection = QLabel()
         img_facedection_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_facedetection.png')))
         img_facedection.setPixmap(img_facedection_pixmap.scaled(
-                int(img_facedection_pixmap.width() * 0.75), 
-                int(img_facedection_pixmap.height() * 0.75), 
+                int(img_facedection_pixmap.width() * image_scale), 
+                int(img_facedection_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_objectdetection = QLabel()
         img_objectdetection_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_objectdetection.png')))
         img_objectdetection.setPixmap(img_objectdetection_pixmap.scaled(
-                int(img_objectdetection_pixmap.width() * 0.75), 
-                int(img_objectdetection_pixmap.height() * 0.75), 
+                int(img_objectdetection_pixmap.width() * image_scale), 
+                int(img_objectdetection_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_objecttracking = QLabel()
         img_objecttracking_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_objecttracking.jpg')))
         img_objecttracking.setPixmap(img_objecttracking_pixmap.scaled(
-                int(img_objecttracking_pixmap.width() * 0.75), 
-                int(img_objecttracking_pixmap.height() * 0.75), 
+                int(img_objecttracking_pixmap.width() * image_scale), 
+                int(img_objecttracking_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_ocr = QLabel()
         img_ocr_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_ocr.png')))
         img_ocr.setPixmap(img_ocr_pixmap.scaled(
-                int(img_ocr_pixmap.width() * 0.75), 
-                int(img_ocr_pixmap.height() * 0.75), 
+                int(img_ocr_pixmap.width() * image_scale), 
+                int(img_ocr_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         for x in [
             img_fullfacedection, 
@@ -262,20 +284,20 @@ class MainApp(QMainWindow):
         img_imagesegmentation = QLabel()
         img_imagesegmentation_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_imagesegmentation.png')))
         img_imagesegmentation.setPixmap(img_imagesegmentation_pixmap.scaled(
-                int(img_facedection_pixmap.width() * 0.75), 
-                int(img_facedection_pixmap.height() * 0.75), 
+                int(img_facedection_pixmap.width() * image_scale), 
+                int(img_facedection_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_depthestimation = QLabel()
         img_depthestimation_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_depthestimation.png')))
         img_depthestimation.setPixmap(img_depthestimation_pixmap.scaled(
-                int(img_depthestimation_pixmap.width() * 0.75), 
-                int(img_depthestimation_pixmap.height() * 0.75), 
+                int(img_depthestimation_pixmap.width() * image_scale), 
+                int(img_depthestimation_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_semanticsegmentation = QLabel()
         img_semanticsegmentation_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_semanticsegmentation.png')))
         img_semanticsegmentation.setPixmap(img_semanticsegmentation_pixmap.scaled(
-                int(img_semanticsegmentation_pixmap.width() * 0.75), 
-                int(img_semanticsegmentation_pixmap.height() * 0.75), 
+                int(img_semanticsegmentation_pixmap.width() * image_scale), 
+                int(img_semanticsegmentation_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         for x in [
             img_imagesegmentation,
@@ -303,14 +325,14 @@ class MainApp(QMainWindow):
         img_handlandmarker = QLabel()
         img_handlandmarker_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_handlandmarker.png')))
         img_handlandmarker.setPixmap(img_handlandmarker_pixmap.scaled(
-                int(img_handlandmarker_pixmap.width() * 0.75), 
-                int(img_handlandmarker_pixmap.height() * 0.75), 
+                int(img_handlandmarker_pixmap.width() * image_scale), 
+                int(img_handlandmarker_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         img_poseestimation = QLabel()
         img_poseestimation_pixmap = QPixmap(resource_path(os.path.join('assets', 'home_poseestimation.png')))
         img_poseestimation.setPixmap(img_poseestimation_pixmap.scaled(
-                int(img_poseestimation_pixmap.width() * 0.75), 
-                int(img_poseestimation_pixmap.height() * 0.75), 
+                int(img_poseestimation_pixmap.width() * image_scale), 
+                int(img_poseestimation_pixmap.height() * image_scale), 
                 Qt.AspectRatioMode.KeepAspectRatio))
         for x in [
             img_handlandmarker, 
@@ -346,7 +368,7 @@ class MainApp(QMainWindow):
         content = QWidget()
         layout = QVBoxLayout()
         subtitle = QLabel("Object Detection")
-        subtitle.setFont(QFont("Times New Roman", 30, QFont.Weight.Bold))
+        subtitle.setFont(QFont("Times New Roman", self.font_scale, QFont.Weight.Bold))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         #FILTERS
         filters_legend_content = QWidget()
@@ -390,7 +412,7 @@ class MainApp(QMainWindow):
         content = QWidget()
         layout = QVBoxLayout()    
         subtitle = QLabel("Image Segmentation")
-        subtitle.setFont(QFont("Times New Roman", 30, QFont.Weight.Bold))
+        subtitle.setFont(QFont("Times New Roman", self.font_scale, QFont.Weight.Bold))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         #FILTERS
         filters_legend_content = QWidget()
@@ -428,7 +450,7 @@ class MainApp(QMainWindow):
         content = QWidget()
         layout = QVBoxLayout()    
         subtitle = QLabel("Pose Estimation")
-        subtitle.setFont(QFont("Times New Roman", 30, QFont.Weight.Bold))
+        subtitle.setFont(QFont("Times New Roman", self.font_scale, QFont.Weight.Bold))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         #FILTERS
         filters_legend_content = QWidget()
@@ -462,10 +484,26 @@ class MainApp(QMainWindow):
         return content
     
     def AboutUsPage(self):
+        image_scale = min(
+            (pyautogui.size()[0] * 0.3) / 1920,
+            (pyautogui.size()[1] * 0.3) / 1080,
+        )
+        font_scale = min(
+            int((pyautogui.size()[0] * 20) / 1920),
+            int((pyautogui.size()[1] * 20) / 1080),
+        )
+        button_font_scale = min(
+            int((pyautogui.size()[0] * 20) / 1920),
+            int((pyautogui.size()[1] * 20) / 1080),
+        )
+        button_height_scale = min(
+            int((pyautogui.size()[0] * 50) / 1920),
+            int((pyautogui.size()[1] * 50) / 1080),
+        )
         layout = QVBoxLayout()
         content = QWidget()
         subtitle = QLabel("About Us")
-        subtitle.setFont(QFont("Times New Roman", 30, QFont.Weight.Bold))
+        subtitle.setFont(QFont("Times New Roman", font_scale, QFont.Weight.Bold))
         subtitle.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         # Author Image
         description_layout = QHBoxLayout()
@@ -473,8 +511,8 @@ class MainApp(QMainWindow):
         author_image_label = QLabel()
         author_image = QPixmap(resource_path(os.path.join('assets', 'rafael_coelho_1.jpeg')))  # Replace with the path to your image
         author_image_label.setPixmap(author_image.scaled(
-            int(author_image.width() * 0.4), 
-            int(author_image.height() * 0.4), 
+            int(author_image.width() * image_scale), 
+            int(author_image.height() * image_scale), 
             Qt.AspectRatioMode.KeepAspectRatio))
         author_image_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         # Author Description
@@ -487,7 +525,7 @@ class MainApp(QMainWindow):
             "Learning, NLP and others.\n\n"
             "Recently, he worked in one of the Big Four companies for over a year."
         )
-        author_description.setFont(QFont("Sans Serif", 20))
+        author_description.setFont(QFont("Sans Serif", font_scale))
         author_description.setWordWrap(True)
         author_description.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         description_layout.addWidget(author_image_label)
@@ -497,12 +535,12 @@ class MainApp(QMainWindow):
         btn_portfolio = QPushButton('Portfolio')
         btn_linkedin = QPushButton('LinkedIn')
         btn_github = QPushButton('GitHub')
-        btn_portfolio.setFont(QFont("Times New Roman", 20, QFont.Weight.Bold))
-        btn_linkedin.setFont(QFont("Times New Roman", 20, QFont.Weight.Bold))
-        btn_github.setFont(QFont("Times New Roman", 20, QFont.Weight.Bold))
-        btn_portfolio.setFixedHeight(50)
-        btn_linkedin.setFixedHeight(50)
-        btn_github.setFixedHeight(50)
+        btn_portfolio.setFont(QFont("Times New Roman", button_font_scale, QFont.Weight.Bold))
+        btn_linkedin.setFont(QFont("Times New Roman", button_font_scale, QFont.Weight.Bold))
+        btn_github.setFont(QFont("Times New Roman", button_font_scale, QFont.Weight.Bold))
+        btn_portfolio.setFixedHeight(button_height_scale)
+        btn_linkedin.setFixedHeight(button_height_scale)
+        btn_github.setFixedHeight(button_height_scale)
         btn_portfolio.clicked.connect(
             lambda: QDesktopServices.openUrl(QUrl("https://rafaelcoelho.streamlit.app/"))
         )
@@ -518,7 +556,7 @@ class MainApp(QMainWindow):
         buttons_layout.addWidget(btn_github)
         #OTHER COELHO PROJECTS
         other_projects = QLabel("Other projects")
-        other_projects.setFont(QFont("Times New Roman", 30, QFont.Weight.Bold))
+        other_projects.setFont(QFont("Times New Roman", font_scale, QFont.Weight.Bold))
         other_projects.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
         coelho_legends = QHBoxLayout()
         coelho_finance_legend = QPushButton("COELHO Finance")
@@ -534,7 +572,7 @@ class MainApp(QMainWindow):
              lambda: QDesktopServices.openUrl(QUrl("https://coelhovision.streamlit.app/"))
         )
         for x in [coelho_finance_legend, f1_analytics_legend, coelho_vision_legend]:
-            x.setFont(QFont("Times New Roman", 20))
+            x.setFont(QFont("Times New Roman", button_font_scale))
             coelho_legends.addWidget(x)
         coelho_logos = QHBoxLayout()
         coelho_finance_logo = QLabel()
@@ -633,7 +671,16 @@ class MainApp(QMainWindow):
             self.model = NoModel()
 
     def _update_vision(self, full_screen):
+        resize_rate = min(
+            pyautogui.size()[0] / self.rgb_original_image.shape[1],
+            pyautogui.size()[1] / self.rgb_original_image.shape[0])
         if not full_screen:
+            self.rgb_displayed_image = cv2.resize(
+                self.rgb_original_image, 
+                (
+                    int(self.rgb_original_image.shape[1] * resize_rate * 0.5),
+                    int(self.rgb_original_image.shape[0] * resize_rate * 0.5)
+                    ))
             # Convert the image to a format PyQt can work with
             h, w, ch = self.rgb_displayed_image.shape
             bytes_per_line = ch * w
@@ -662,8 +709,9 @@ class MainApp(QMainWindow):
             self.original_displayed_image = cv2.resize(
                 self.rgb_original_image, 
                 (
-                    int(self.rgb_original_image.shape[1] * 0.9), 
-                    int(self.rgb_original_image.shape[0] * 0.9)))
+                    int(self.rgb_original_image.shape[1] * resize_rate * 0.9),
+                    int(self.rgb_original_image.shape[0] * resize_rate * 0.9)
+                    ))
             h, w, ch = self.original_displayed_image.shape
             bytes_per_line = ch * w
             convert_to_Qt_format = QImage(
@@ -689,11 +737,6 @@ class MainApp(QMainWindow):
         if ret:
             frame = self.model.transform(frame)
             self.rgb_original_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            self.rgb_displayed_image = cv2.resize(
-                self.rgb_original_image, 
-                (
-                    int(self.rgb_original_image.shape[1] * 0.5), 
-                    int(self.rgb_original_image.shape[0] * 0.5)))
             self._update_vision(FULL_SCREEN_MODE)
 
     def _set_resolution(self, resolution):
@@ -830,18 +873,11 @@ class FullScreenWindow(QWidget):
         return h_line
 
 #-------------------------
+window = MainApp()
+window.show()
+app.exec()
 
-def main():
-    app = QApplication([])
-    app.setStyle("fusion")
-    window = MainApp()
-    window.show()
-    app.exec()
-
-if __name__ == '__main__':
-    main()
-
-#py -m PyInstaller --onedir --clean --icon=assets/coelho_vision_icon.ico --add-data "data;data" --add-data "assets;assets" --add-data "models;models" --collect-all openvino --collect-all torch .\COELHO_VISION.py
+#py -m PyInstaller --onefile --windowed --clean --icon=assets/coelho_vision_icon.ico --add-data "data;data" --add-data "assets;assets" --add-data "models;models" --collect-all openvino --collect-all torch .\COELHO_VISION.py
 #ALWAYS DELETE *.spec, __pycache__, build AND dist FOLDERS BEFORE COMPILING IT
     
 #py -m nuitka --standalone --windows-icon-from-ico=assets/coelho_vision_icon.ico --include-data-dir=data=data --include-data-dir=assets=assets --include-data-dir=models=models COELHO_VISION.py
